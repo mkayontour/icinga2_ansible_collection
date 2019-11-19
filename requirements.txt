@@ -1,0 +1,8 @@
+jinja2
+PyYAML
+cryptography
+requests
+python-language-server[all]
+ansible
+python-dateutil
+pytz

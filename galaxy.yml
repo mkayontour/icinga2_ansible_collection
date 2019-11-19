@@ -1,0 +1,19 @@
+namespace: icinga2
+name: icinga2_collection
+version: 0.1.0
+readme: README.md
+authors:
+- Thilo Wening <mkayontour@gmail.com>
+
+description: |
+  This collection of icinga2 ansible modules will provide multiple modules to manage hosts, confguration and
+  downtimes
+license:
+- GPL-2.0
+license_file: ''
+tags: ['monitoring','icinga2','icingaweb2','director','config','objects']
+dependencies: {}
+repository: http://github.com/mkayontour/icinga2_ansible_collection
+documentation: http://github.com/mkayontour/icinga2_ansible_collection
+homepage: http://example.com
+issues: http://github.com/mkayontour/icinga2_ansible_collection/issues

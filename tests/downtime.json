@@ -1,0 +1,14 @@
+{
+  "ANSIBLE_MODULE_ARGS": {
+    "host": "https://i2-master.demo.local",
+    "port": 5665,
+    "state": "present",
+    "username": "icinga",
+    "password": "icinga",
+    "author": "thilo",
+    "comment": "blubber comment",
+    "duration": "300",
+    "hostnames": ["agent.localdomain"],
+    "all_services": true
+  }
+}

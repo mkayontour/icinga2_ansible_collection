@@ -1,0 +1,3 @@
+tests/test.crt
+tests/test.py
+*.pyc
