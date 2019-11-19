@@ -21,9 +21,6 @@ First two things to mention:
 
 I will try to officially push this to Ansible, but this needs much more testing than a smoketest.
 
-I could try to put everything into a collection, then it could be easier to install for ansible. (maybe?)
-
-Otherwise
 
 Clone this repository onto your Ansible Host, and provide the folder in your **ANSIBLE_MODULE_PATH** variable.
 
@@ -32,6 +29,12 @@ You can also set it as environment variable.
 ```
 export ANSIBLE_LIBRARY=$ANSIBLE_LIBRARY:/path/to/local/repository/plugins/modules
 ```
+
+### Collection Installation:
+
+Download the **tar.gz** and install it with the Ansible Galaxy Command.
+
+`ansible-galaxy collection install icinga2-icinga2_collection-0.1.0.tar.gz`
 
 The required python libraries are documented in each module.
 
