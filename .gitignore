@@ -1,3 +1,4 @@
 tests/test.crt
 tests/test.py
 *.pyc
+*.tar.gz
