@@ -1,4 +1,4 @@
-# Ansible Collection - ansible_icinga2.icinga2_modules
+# Ansible Collection - icinga2.icinga2_collection
 
 Documentation for the collection.
 
