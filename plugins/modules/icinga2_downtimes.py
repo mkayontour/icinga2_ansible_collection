@@ -15,13 +15,15 @@ ANSIBLE_METADATA = {'metadata_version': '0.1',
 DOCUMENTATION = r'''
 module: icinga2_downtimes
 short_description: A module to deploy downtimes using the Icinga 2 API
+description: The module to schedule and remove downtimes at hosts and their services.
 author: Thilo Wening (@mkayontour)
-options
+options:
   host:
     description: The address and URI to the icinga2 API UI.
     required: true
     type: string
   port:
+    description: The port of the Icinga 2 API.
     required: False
     type: string
     default: 5665
@@ -34,7 +36,7 @@ options
     required: true
     type: string
   state:
-    description: Choose between present and absent. (Default: Present)
+    description: Choose between present and absent.
     required: false
     type: string
     default: present

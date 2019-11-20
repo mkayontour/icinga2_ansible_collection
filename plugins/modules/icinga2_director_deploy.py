@@ -17,7 +17,7 @@ module: icinga2_director_deploy
 short_description: Deploy configuration at your Icinga Web 2 Director
 description: Use to deploy the configuration on you Director installation.
 author: Thilo Wening (@mkayontour)
-options
+options:
   host:
     description: The address and URI to the icingaweb2 UI.
     required: true
