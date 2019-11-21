@@ -10,9 +10,9 @@ Documentation for the collection.
 This is the first go for this Ansible Module Collection. For the parameter documentation check the ansible-doc
 
 ```
-ansible-doc icinga2_director_host
-ansible-doc icinga2_director_deploy
-ansible-doc icinga2_downtimes
+ansible-doc icinga2.icinga2_collection.icinga2_director_host
+ansible-doc icinga2.icinga2_collection.icinga2_director_deploy
+ansible-doc icinga2.icinga2_collection.icinga2_downtimes
 ```
 
 ## Installation
@@ -41,9 +41,9 @@ The required python libraries are documented in each module.
 Afterwards you should be getting the documentation for the module!
 
 ```
-ansible-doc icinga2_director_host
-ansible-doc icinga2_director_deploy
-ansible-doc icinga2_downtimes
+ansible-doc icinga2.icinga2_collection.icinga2_director_host
+ansible-doc icinga2.icinga2_collection.icinga2_director_deploy
+ansible-doc icinga2.icinga2_collection.icinga2_downtimes
 ```
 
 
