@@ -135,6 +135,8 @@ result:
 '''
 
 import json
+import time
+from pytz import timezone
 import pytz
 import requests
 from dateutil.parser import parse
@@ -153,7 +155,7 @@ class Icinga2Downtimes(object):
         self.author = module.params.get('author')
         self.start = module.params.get('starttime')
         self.end = module.params.get('endtime')
-        self.timezone = module.params.get('timezone')
+        self.tz = module.params.get('timezone')
         self.duration = module.params.get('duration')
         self.comment = module.params.get('comment')
         self.hostgroups = module.params.get('hostgroups')
@@ -163,29 +165,6 @@ class Icinga2Downtimes(object):
         self.ssl_cert = module.params.get('ssl_cert')
         self.headers = {'Accept': 'application/json'}
 
-
-        if self.state == 'present':
-            tz = pytz.timezone(self.timezone)
-            if self.start and self.end:
-                self.start = parse(self.start, tzinfos=tz).strftime('%s')
-                self.end = parse(self.end, tzinfos=tz).strftime('%s')
-            elif self.start and self.duration and self.start != 'now':
-                self.start = parse(self.start, tzinfos=tz).strftime('%s')
-                self.end = int(self.start) + self.duration
-            elif self.start == 'now' and self.end:
-                self.start = datetime.datetime.now(tz)
-                self.end = parse(self.end, tzinfos=tz).strftime('%s')
-            elif self.start == 'now' and self.duration:
-                self.start = datetime.now(tz).strftime('%s')
-                self.end = int(self.start) + self.duration
-
-        if self.ssl_cert == 'None':
-            self.ssl_cert = False
-
-        if self.hostgroups and self.hostnames:
-            module.fail_json(msg=('Please choose whether to set downtimes for'
-                                  ' hosts or for hostgroups. '
-                                  'Both at the same time is not supported.'))
 
     def run(self):
 
@@ -198,6 +177,28 @@ class Icinga2Downtimes(object):
         return res
 
     def set_downtime(self, url, action):
+        if self.state == 'present':
+            if self.start and self.end:
+                self.start = Icinga2Downtimes().get_unix_time(time_string=self.start, tz_name=self.tz)
+                self.end = Icinga2Downtimes().get_unix_time(time_string=self.end, tz_name=self.tz)
+            elif self.start and self.duration and self.start != 'now':
+                self.start = Icinga2Downtimes().get_unix_time(time_string=self.start, tz_name=self.tz)
+                self.end = int(self.start) + self.duration
+            elif self.start == 'now' and self.end:
+                self.start = Icinga2Downtimes().get_timestamp_now(tz_name=self.tz)
+                self.end = Icinga2Downtimes().get_unix_time(time_string=self.end, tz_name=self.tz)
+            elif self.start == 'now' and self.duration:
+                self.start = Icinga2Downtimes().get_timestamp_now(tz_name=self.tz)
+                self.end = int(self.start) + self.duration
+
+        if self.ssl_cert == 'None':
+            self.ssl_cert = False
+
+        if self.hostgroups and self.hostnames:
+            module.fail_json(msg=('Please choose whether to set downtimes for'
+                                  ' hosts or for hostgroups. '
+                                  'Both at the same time is not supported.'))
+
         filters = ""
         data = dict()
 
@@ -279,6 +280,23 @@ class Icinga2Downtimes(object):
             module.fail_json(msg='Error: ' + str(e))
 
         return res
+
+    def get_unix_time(self, time_string, tz_name):
+        # parse the time input (without timezone)
+        ts = parse(time_string)
+
+        # localize to the specified timezone
+        tz = timezone(tz_name)
+        ts = tz.localize(ts)
+
+        return int(ts.timestamp())
+
+    def get_timestamp_now(self, tz_name):
+        d = datetime.now()
+        tz = timezone(tz_name)
+        ts = tz.localize(d)
+
+        return int(ts.timestamp())
 
 
 def main():
