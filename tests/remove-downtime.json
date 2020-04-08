@@ -2,12 +2,9 @@
   "ANSIBLE_MODULE_ARGS": {
     "host": "https://i2db-master.demo.local",
     "port": 5665,
-    "state": "present",
+    "state": "absent",
     "username": "root",
     "password": "7cd26dec11bb4804",
-    "author": "thilo",
-    "comment": "blubber comment",
-    "duration": "300",
     "hostname": "i2db-master.demo.local",
     "all_services": true
   }
