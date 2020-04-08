@@ -11,6 +11,7 @@ This is the first go for this Ansible Module Collection. For the parameter docum
 
 ```
 ansible-doc icinga2.icinga2_collection.icinga2_director_host
+ansible-doc icinga2.icinga2_collection.icinga2_director_service
 ansible-doc icinga2.icinga2_collection.icinga2_director_deploy
 ansible-doc icinga2.icinga2_collection.icinga2_downtimes
 ```
