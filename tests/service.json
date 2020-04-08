@@ -15,7 +15,7 @@
     "custom_vars": {
       "os": "Linux",
       "application": "Apache",
-      "ping_wrta": "100",
+      "ping_wrta": "110",
       "ping_crta": "200"
     }
   }
