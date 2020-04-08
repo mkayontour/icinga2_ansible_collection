@@ -137,6 +137,8 @@ class Icinga2Director(object):
                                return_code=u.status_code)
                 else:
                     module.fail_json(msg='Failed to create/update service' + u.text)
+            elif c.status_code == 500:
+                module.fail_json(msg='Failed to create service :' + c.text)
             else:
                 res = dict(changed=False,
                            ansible_module_results=("service object already "
@@ -171,6 +173,7 @@ class Icinga2Director(object):
                     module.fail_json(msg=("Failed to login check "
                                           "username or password StatusCode: "
                                           + str(r.status_code)))
+
             except requests.exceptions.RequestException as e:
                 module.fail_json(msg='Error: ' + str(e))
 
