@@ -66,7 +66,7 @@ requirements:
 EXAMPLES = r'''
 # Create Host
 - name: Create Host at Director
-  icinga2_director:
+  icinga2_director_host:
     name: agent.localdomain
     host: "http://icingaweb.localdomain/icingaweb2"
     username: 'icinga'
