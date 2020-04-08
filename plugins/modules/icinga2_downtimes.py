@@ -40,6 +40,10 @@ options:
     required: false
     type: string
     default: present
+  hostname:
+    description: Name or glob as a string to match any host in the Icinga 2 setup.
+    required: false
+    type: string
   hostnames:
     description: Names or glob matches in an array to match any host in the Icinga 2 setup.
     required: false
@@ -116,7 +120,19 @@ EXAMPLES = r'''
     duration: "300"
     state: 'present'
     ssl_cert: '/var/lib/icinga2/certs/icinga2-master.localdomain.crt'
-    hostnames: ["agent.localdomain"]
+    hostname: "agent.localdomain"
+    
+- name: Set downtime for hosts 
+  icinga2.icinga2_collection.icinga2_downtimes:
+    host: 'https://localhost'
+    username: 'icinga'
+    password: 'icinga'
+    author: "admin"
+    comment: "Downtime for Updates"
+    duration: "300"
+    state: 'present'
+    ssl_cert: '/var/lib/icinga2/certs/icinga2-master.localdomain.crt'
+    hostnames: ["agent1.localdomain","agent2.localdomain","win*"]
     
 - name: remove downtime for host 'agent.localdomain' 
   icinga2.icinga2_collection.icinga2_downtimes:
@@ -125,7 +141,7 @@ EXAMPLES = r'''
     password: 'icinga'
     state: 'absent'
     ssl_cert: '/var/lib/icinga2/certs/icinga2-master.localdomain.crt'
-    hostnames: ["agent.localdomain"]
+    hostname: "agent.localdomain"
 '''
 
 RETURN = r'''
@@ -160,6 +176,7 @@ class Icinga2Downtimes(object):
         self.comment = module.params.get('comment')
         self.hostgroups = module.params.get('hostgroups')
         self.hostnames = module.params.get('hostnames')
+        self.hostname = module.params.get('hostname')
         self.service = module.params.get('services')
         self.all_services = module.params.get('all_services')
         self.ssl_cert = module.params.get('ssl_cert')
@@ -225,7 +242,13 @@ class Icinga2Downtimes(object):
 
 
         if action == 'remove' or action == 'schedule':
-          if self.hostgroups and not self.hostnames:
+          if self.hostname and not self.hostnames and not self.hostgroups:
+              data.update(type='Host')
+              filters = 'match(\"' + self.hostname + '\" ,host.name)'
+              if self.all_services:
+                  data.update(all_services=True)
+
+          elif self.hostgroups and not self.hostnames and not self.hostname:
               data.update(type='Host')
               if iter(self.hostgroups):
                   for item in self.hostgroups[:-1]:
@@ -237,10 +260,10 @@ class Icinga2Downtimes(object):
               # TODO: Rewrite filter and make second request for single services or multiple
               #elif self.service:
               #    filters += ' && match(\"' + self.service + '\" , service.name)'
-          
+
               data.update(filter=filters)
           
-          elif self.hostnames and not self.hostgroups:
+          elif self.hostnames and not self.hostgroups and not self.hostname:
               data.update(type='Host')
               if iter(self.hostnames):
                   for item in self.hostnames[:-1]:
@@ -253,6 +276,9 @@ class Icinga2Downtimes(object):
               #      filters += ' && match(\"' + self.service + '\" , service.name)'
           
               data.update(filter=filters)
+          else:
+              module.fail_json(msg='Error: Please choose only one param of hostgroups, hostnames or hostname')
+
 
         #print(json.dumps(data))
         #print(url)
@@ -292,9 +318,8 @@ class Icinga2Downtimes(object):
         return int(ts.timestamp())
 
     def get_timestamp_now(self, tz_name):
-        d = datetime.now()
         tz = timezone(tz_name)
-        ts = tz.localize(d)
+        ts = datetime.now(tz)
 
         return int(ts.timestamp())
 
@@ -316,6 +341,7 @@ def main():
             comment=dict(required=False),
             hostgroups=dict(required=False, type='list'),
             hostnames=dict(required=False, type='list'),
+            hostname=dict(required=False),
             all_services=dict(required=False, type='bool'),
             service=dict(required=False, type='string'),
             ssl_cert=dict(required=False, default='None')
