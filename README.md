@@ -72,6 +72,24 @@ Otherwise if the modules are included directly into the modules path then only t
       - "basic-host"
   notify: "deploy config"
 
+- name: create service for host
+  icinga2.icinga2_collection.icinga2_director_servie:
+    name: "Service Ping4"
+    hostname: "simple.plan.localdomain"
+    host: http://icingaweb2.local/icingaweb2
+    username: icinga
+    password: secret
+    service_vars:
+      check_command: "ping4"
+      check_interval: 300
+      retry_interval: 30
+    custom_vars:
+      ping_wrta: 100
+      ping_crta: 200
+    templates:
+      - "basic-service"
+  notify: "deploy config"
+
 handlers:
   - name: deploy config
     icinga2.icinga2_collection.icinga2_director_deploy:
