@@ -117,6 +117,10 @@ Create as much objects as possible within these modules or this module.
 
 It should be able to create anything ad-hoc with Ansible on the director and Icinga 2.
 
+## Test
+
+ cd icinga2_ansible_collection/icinga2/plugins/modules
+ python -m icinga2_downtimes ../../tests/downtime.json
 
 ## Contributing
 
