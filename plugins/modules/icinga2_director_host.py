@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '0.1',
+ANSIBLE_METADATA = {'metadata_version': '0.5',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
@@ -42,6 +42,12 @@ options:
     type: string
   update_if_exists:
     description: Update the host in director if the host already exists
+    required: false
+    default: false
+    type: bool
+  merge_vars:
+    description: |
+      When override vars from director is used, merge them with the new vars
     required: false
     default: false
     type: bool
@@ -104,6 +110,7 @@ class Icinga2Director(object):
         self.exists = module.params.get('update_if_exists')
         self.custom_vars = module.params.get('custom_vars')
         self.host_vars = module.params.get('host_vars')
+        self.merge_vars = module.params.get('merge_vars')
         self.imports = module.params.get('templates')
         self.headers = {'Accept': 'application/json'}
 
@@ -164,9 +171,39 @@ class Icinga2Director(object):
                 if r.status_code == 401:
                     module.fail_json(msg=("Failed to login check "
                                           "username or password StatusCode: "
-                                          + str(r.status_code)))
+                                          + str(r.status_code) + str(r.text)))
+                elif r.status_code == 404:
+                    module.fail_json(msg=("Failed to update host, maybe the hostgroup or a template is not available: "
+                                          + str(r.status_code) + str(r.text)))
             except requests.exceptions.RequestException as e:
                 module.fail_json(msg='Error: ' + str(e))
+
+        elif action == 'update' and self.merge_vars:
+            payload = Icinga2Director().struct_data()
+            try:
+                f = requests.get(url + '/host?name=' + self.name,
+                                  auth=(self.username, self.password),
+                                  headers=self.headers)
+                hostvars = json.loads(f.content)
+                #print(hostvars['vars']['_override_servicevars'])
+
+                if f.status_code == 401:
+                    module.fail_json(msg=("Failed to login check "
+                                          "username or password StatusCode: "
+                                          + str(f.status_code) + str(f.text)))
+                elif f.status_code == 404:
+                    module.fail_json(msg=("Host not found: "
+                                          + str(f.status_code) + str(f.text)))
+                if f.status_code == 200:
+                    payload['vars'] = merge_two_dicts(payload['vars'], hostvars['vars'])
+                    r = requests.put(url + '/host?name=' + self.name,
+                                    auth=(self.username, self.password),
+                                    headers=self.headers,
+                                    data=json.dumps(payload))
+
+            except requests.exceptions.RequestException as e:
+                module.fail_json(msg='Error: ' + str(e))
+
 
         elif action == 'update':
             payload = Icinga2Director().struct_data()
@@ -178,7 +215,10 @@ class Icinga2Director(object):
                 if r.status_code == 401:
                     module.fail_json(msg=("Failed to login check "
                                           "username or password StatusCode: "
-                                          + str(r.status_code)))
+                                          + str(r.status_code) + str(r.text)))
+                elif r.status_code == 404:
+                    module.fail_json(msg=("Failed to update host, maybe the hostgroup or a template is not available: "
+                                          + str(r.status_code) + str(r.text)))
             except requests.exceptions.RequestException as e:
                 module.fail_json(msg='Error: ' + str(e))
         elif action == 'delete':
@@ -189,13 +229,14 @@ class Icinga2Director(object):
                 if r.status_code == 401:
                     module.fail_json(msg=("Failed to login check "
                                           "username or password StatusCode: "
-                                          + str(r.status_code)))
+                                          + str(r.status_code) + str(r.text)))
             except requests.exceptions.RequestException as e:
                 module.fail_json(msg='Error: ' + str(e))
         else:
             module.fail_json(msg=("unsupported action "
                                   "evaluated in manage_host()"))
         return r
+
 
     def struct_data(self):
         data = {
@@ -205,8 +246,8 @@ class Icinga2Director(object):
                }
 
         if self.host_vars:
-            vars = self.host_vars
-            data.update(vars)
+            host_vars = self.host_vars
+            data.update(host_vars)
 
         if self.custom_vars:
             data['vars'].update(self.custom_vars)
@@ -219,6 +260,11 @@ class Icinga2Director(object):
 
         return data
 
+def merge_two_dicts(x, y):
+    """Given two dictionaries, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
 
 def main():
     global module
@@ -233,7 +279,8 @@ def main():
             custom_vars=dict(required=False, type='dict'),
             host_vars=dict(required=False, type='dict'),
             templates=dict(required=False, type='list'),
-            update_if_exists=dict(type='bool')
+            merge_vars=dict(required=False, type='bool', default=False),
+            update_if_exists=dict(type='bool', default=False)
         ),
         supports_check_mode=False,
     )
