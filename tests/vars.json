@@ -3,7 +3,7 @@
     "host": "http://192.168.10.111/icingaweb2",
     "name": "testhost4.localdomain",
     "username": "icinga",
-    "password": "test",
+    "password": "icinga",
     "host_vars": {
       "address": "127.0.0.2",
       "check_interval": "300",
@@ -14,7 +14,12 @@
     "templates": [ "basic-host" ],
     "custom_vars": {
       "os": "Linux",
-      "application": "Apache2"
+      "application": "Apache2",
+      "_override_servicevars": {
+        "Disk /tmp": {
+          "disk_partition": "/var/tmp"
+        }
+      }
     }
   }
 }
