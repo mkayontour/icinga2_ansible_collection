@@ -195,7 +195,8 @@ class Icinga2Director(object):
                     module.fail_json(msg=("Host not found: "
                                           + str(f.status_code) + str(f.text)))
                 if f.status_code == 200:
-                    payload['vars'] = merge_two_dicts(payload['vars'], hostvars['vars'])
+                    payload['vars'] = merge_two_dicts(hostvars['vars'], payload['vars'])
+                    print(payload['vars'])
                     r = requests.put(url + '/host?name=' + self.name,
                                     auth=(self.username, self.password),
                                     headers=self.headers,
