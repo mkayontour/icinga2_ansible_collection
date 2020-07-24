@@ -185,11 +185,17 @@ class Icinga2Downtimes(object):
 
     def run(self):
 
+        if self.state == 'present' and not self.end and not self.duration:
+            module.fail_json(msg='No endtime or duration is given.')
+
+
         url = self.host + ':' + self.port + '/v1'
-        if self.state == 'present':
+        if self.state == 'present' and self.comment and self.author:
             res = Icinga2Downtimes().set_downtime(url, action='schedule')
-        if self.state == 'absent':
+        elif self.state == 'absent':
             res = Icinga2Downtimes().set_downtime(url, action='remove')
+        else:
+            module.fail_json(msg='Comment or Author is missing')
 
         return res
 
@@ -241,44 +247,48 @@ class Icinga2Downtimes(object):
           #             filters += '&& match(\"' + item + '\" , service.name)'
 
 
-        if action == 'remove' or action == 'schedule':
-          if self.hostname and not self.hostnames and not self.hostgroups:
-              data.update(type='Host')
-              filters = 'match(\"' + self.hostname + '\" ,host.name)'
-              if self.all_services:
-                  data.update(all_services=True)
+        if action == 'remove' and self.all_services:
+          data.update(type='Downtime')
+        elif action == 'remove' and not self.all_services:
+          data.update(type='Host')
+        elif action == 'schedule' and self.all_services:
+          data.update(type='Host')
+          data.update(all_services=True)
+        elif action == 'schedule':
+          data.update(type='Host')
 
-          elif self.hostgroups and not self.hostnames and not self.hostname:
-              data.update(type='Host')
-              if iter(self.hostgroups):
-                  for item in self.hostgroups[:-1]:
-                      filters += '\"' + item + '\" in host.groups || '
-                  filters += '\"' + self.hostgroups[-1] + '\" in host.groups'
-              if self.all_services:
-                  data.update(all_services=True)
-
+        if self.hostname and not self.hostnames and not self.hostgroups:
+            filters += 'match(\"' + self.hostname + '\" ,host.name)'
+            data.update(filter=filters)
+        elif self.hostgroups and not self.hostnames and not self.hostname:
+            if iter(self.hostgroups):
+                for item in self.hostgroups[:-1]:
+                    filters += '\"' + item + '\" in host.groups || '
+                filters += '\"' + self.hostgroups[-1] + '\" in host.groups'
+              # if self.all_services:
+              #     data.update(all_services=True)
+              #print('hostgroups yeah ' + filters)
               # TODO: Rewrite filter and make second request for single services or multiple
               #elif self.service:
               #    filters += ' && match(\"' + self.service + '\" , service.name)'
 
-              data.update(filter=filters)
+            data.update(filter=filters)
           
-          elif self.hostnames and not self.hostgroups and not self.hostname:
-              data.update(type='Host')
-              if iter(self.hostnames):
-                  for item in self.hostnames[:-1]:
-                      filters += 'match(\"' + item + '\" ,host.name) || '
-                  filters += 'match(\"' + self.hostnames[-1] + '\" ,host.name)'
-              if self.all_services:
-                  data.update(all_services=True)
+        elif self.hostnames and not self.hostgroups and not self.hostname:
+              #data.update(type='Host')
+            if iter(self.hostnames):
+                for item in self.hostnames[:-1]:
+                    filters += 'match(\"' + item + '\" ,host.name) || '
+                filters += 'match(\"' + self.hostnames[-1] + '\" ,host.name)'
+              # if self.all_services:
+              #     data.update(all_services=True)
               # TODO: Rewrite filter and make second request for single services or multiple
               # elif self.service:
               #      filters += ' && match(\"' + self.service + '\" , service.name)'
           
-              data.update(filter=filters)
-          else:
+            data.update(filter=filters)
+        else:
               module.fail_json(msg='Error: Please choose only one param of hostgroups, hostnames or hostname')
-
 
         #print(json.dumps(data))
         #print(url)
